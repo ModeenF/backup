@@ -9,11 +9,16 @@
 
 #include <Window.h>
 
+#include "BackupView.h"
+
 
 class BackupWindow : public BWindow {
 public:
 							BackupWindow(BRect frame);
 	virtual	bool					QuitRequested();
+
+private:
+		BackupView*				fBackupView;
 };
 
 

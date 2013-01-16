@@ -7,6 +7,8 @@
 
 #include "BackupWindow.h"
 
+#include <GroupLayout.h>
+
 
 BackupWindow::BackupWindow(BRect frame)
 	:
@@ -14,6 +16,11 @@ BackupWindow::BackupWindow(BRect frame)
 		B_NORMAL_WINDOW_FEEL, B_NOT_RESIZABLE | B_NOT_ZOOMABLE
 		| B_ASYNCHRONOUS_CONTROLS)
 {
+	SetLayout(new BGroupLayout(B_HORIZONTAL));
+
+	fBackupView = new BackupView(frame);
+	GetLayout()->AddView(fBackupView);
+
 	Show();
 }
 
