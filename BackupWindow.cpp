@@ -7,6 +7,7 @@
 
 #include "BackupWindow.h"
 
+#include <Application.h>
 #include <GroupLayout.h>
 
 
@@ -28,6 +29,6 @@ BackupWindow::BackupWindow(BRect frame)
 bool
 BackupWindow::QuitRequested()
 {
-	//be_app->PostMessage(B_QUIT_REQUESTED);
+	be_app->PostMessage(B_QUIT_REQUESTED);
 	return true;
 }
