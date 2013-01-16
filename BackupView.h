@@ -18,7 +18,7 @@ public:
 							BackupView(BRect frame);
 			void				RefreshSizes();
 private:
-			int32				DirectorySize(BPath* path);
+			off_t				DirectorySize(BPath* path);
 			BCheckBox*			fHomeEnable;
 			BStringView*			fHomeSize;
 			BCheckBox*			fSysSettingEnable;

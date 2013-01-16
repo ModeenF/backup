@@ -2,6 +2,8 @@
  * 2013 Alexander von Gluck IV, All rights reserved
  * Released under the terms of the MIT license
  *
+ * Authors:
+ *	Matthijs Hollemans (size_to_string)
  */
 
 
@@ -14,6 +16,34 @@
 #include <LayoutBuilder.h>
 
 #include <stdio.h>
+
+
+static void
+size_to_string(off_t byteCount, char* name, int maxLength)
+{
+	struct {
+		off_t           limit;
+		float           divisor;
+		const char*     format;
+	} scale[] = {
+		{ 0x100000, 1024.0, "%.2f KiB" },
+		{ 0x40000000, 1048576.0, "%.2f MiB" },
+		{ 0x10000000000ull, 1073741824.0, "%.2f GiB" },
+		{ 0x4000000000000ull, 1.09951162778e+12, "%.2f TiB" }
+	};
+
+	if (byteCount < 1024) {
+		snprintf(name, maxLength, "%lld bytes",
+			byteCount);
+	} else {
+		int i = 0;
+		while (byteCount >= scale[i].limit)
+			i++;
+
+		snprintf(name, maxLength, scale[i].format,
+			byteCount / scale[i].divisor);
+        }
+}
 
 
 BackupView::BackupView(BRect frame)
@@ -66,28 +96,29 @@ BackupView::BackupView(BRect frame)
 void
 BackupView::RefreshSizes()
 {
+	char sizeText[512];
 	BPath homeDirectory;
 	find_directory(B_USER_DIRECTORY, &homeDirectory);
-	uint32 bytes = DirectorySize(&homeDirectory);
-	printf("%s: %" B_PRId32 "\n", __func__, bytes);
-	fHomeSize->SetText("100MB");
+	//uint32 bytes = DirectorySize(&homeDirectory);
+	size_to_string(DirectorySize(&homeDirectory), sizeText, 512);
+	fHomeSize->SetText(sizeText);
 
 	BPath sysSettingsDirectory;
 	find_directory(B_COMMON_SETTINGS_DIRECTORY, &sysSettingsDirectory);
-	//bytes = DirectorySize(&sysSettingsDirectory);
-	fSysSettingSize->SetText("10KB");
+	size_to_string(DirectorySize(&sysSettingsDirectory), sizeText, 512);
+	fSysSettingSize->SetText(sizeText);
 }
 
 
-int32
+off_t
 BackupView::DirectorySize(BPath* path)
 {
-	printf("%s: %s\n", __func__, path->Path());
+	//printf("%s: %s\n", __func__, path->Path());
 	BDirectory dir(path->Path());
 	int32 entries = dir.CountEntries();
-	printf("%s: items: %" B_PRId32 "\n", __func__, entries);
+	//printf("%s: items: %" B_PRId32 "\n", __func__, entries);
 	dir.Rewind();
-	int32 bytes = 0;
+	off_t bytes = 0;
 	for (int32 i; i < entries; i++) {
 		BEntry entry;
 		dir.GetNextEntry(&entry);
