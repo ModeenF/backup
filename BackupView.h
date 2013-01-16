@@ -8,7 +8,7 @@
 
 
 #include <CheckBox.h>
-#include <TextView.h>
+#include <StringView.h>
 #include <View.h>
 
 
@@ -18,9 +18,9 @@ public:
 			void				RefreshSizes();
 private:
 			BCheckBox*			fHomeEnable;
-			BTextView*			fHomeSize;
+			BStringView*			fHomeSize;
 			BCheckBox*			fSysSettingEnable;
-			BTextView*			fSysSettingSize;
+			BStringView*			fSysSettingSize;
 };
 
 

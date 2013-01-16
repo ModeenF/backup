@@ -22,17 +22,13 @@ BackupView::BackupView(BRect frame)
 	// Create "Settings Group"
 	fHomeEnable = new BCheckBox("backup home",
 		"Backup Home Directory", NULL);
-        fHomeEnable->SetValue(B_CONTROL_ON);
-	fHomeSize = new BTextView("home size");
-	fHomeSize->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
-	fHomeSize->MakeEditable(false);
+		fHomeEnable->SetValue(B_CONTROL_ON);
+	fHomeSize = new BStringView("home size", "");
 
 	fSysSettingEnable = new BCheckBox("backup system",
 		"Backup System Settings", NULL);
-        fSysSettingEnable->SetValue(B_CONTROL_ON);
-	fSysSettingSize = new BTextView("system setting size");
-	fSysSettingSize->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
-	fSysSettingSize->MakeEditable(false);
+		fSysSettingEnable->SetValue(B_CONTROL_ON);
+	fSysSettingSize = new BStringView("system setting size", "");
 
 	BGroupLayout* settingsGroup = BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
 		.AddGrid()
