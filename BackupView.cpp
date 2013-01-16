@@ -7,6 +7,7 @@
 
 #include "BackupView.h"
 
+#include <Button.h>
 #include <LayoutBuilder.h>
 
 
@@ -21,12 +22,12 @@ BackupView::BackupView(BRect frame)
 
 	// Create "Settings Group"
 	fHomeEnable = new BCheckBox("backup home",
-		"Backup Home Directory", NULL);
+		"Home Directory", NULL);
 		fHomeEnable->SetValue(B_CONTROL_ON);
 	fHomeSize = new BStringView("home size", "");
 
 	fSysSettingEnable = new BCheckBox("backup system",
-		"Backup System Settings", NULL);
+		"System Settings", NULL);
 		fSysSettingEnable->SetValue(B_CONTROL_ON);
 	fSysSettingSize = new BStringView("system setting size", "");
 
@@ -42,9 +43,13 @@ BackupView::BackupView(BRect frame)
 			B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
 	;
 
+	BButton* button = new BButton(BRect(0, 0, 10, 10), "backup", "Backup!", NULL);
+	button->MakeDefault(true);
+
 	// Attach all of the LayoutGroups to the view
 	AddChild(BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
 		.Add(settingsGroup)
+		.Add(button)
 	);
 
 	// Refresh the sizes of each item

@@ -9,10 +9,10 @@
 
 
 BackupApp::BackupApp()
-    :
-    BApplication(APPLICATION_SIG)
+	:
+	BApplication(APPLICATION_SIG)
 {
-	BRect windowRect(50, 50, 400, 450);
+	BRect windowRect(50, 50, 300, 400);
 	fMainWindow = new BackupWindow(windowRect);
 }
 
