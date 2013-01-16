@@ -10,6 +10,8 @@
 #include <Application.h>
 #include <Deskbar.h>
 
+#include "BackupWindow.h"
+
 
 #define APPLICATION_SIG "application/x-vnd.Backup"
 
@@ -20,6 +22,8 @@ public:
 	virtual						~BackupApp();
 //		void					ReadyToRun();
 //		void					MessageReceived(BMessage *message);
+private:
+		BackupWindow*				fMainWindow;
 };
 
 
