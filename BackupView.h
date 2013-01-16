@@ -7,12 +7,20 @@
 #define __BACKUPVIEW_H__
 
 
+#include <CheckBox.h>
+#include <TextView.h>
 #include <View.h>
 
 
 class BackupView : public BView {
 public:
 							BackupView(BRect frame);
+			void				RefreshSizes();
+private:
+			BCheckBox*			fHomeEnable;
+			BTextView*			fHomeSize;
+			BCheckBox*			fSysSettingEnable;
+			BTextView*			fSysSettingSize;
 };
 
 
