@@ -11,7 +11,7 @@
 #include <Deskbar.h>
 
 
-#define APPLICATION_SIG "application/x-vnd.Mynti"
+#define APPLICATION_SIG "application/x-vnd.Backup"
 
 
 class BackupApp : public BApplication {
