@@ -8,7 +8,12 @@
 #include "BackupView.h"
 
 #include <Button.h>
+#include <Directory.h>
+#include <Entry.h>
+#include <FindDirectory.h>
 #include <LayoutBuilder.h>
+
+#include <stdio.h>
 
 
 BackupView::BackupView(BRect frame)
@@ -61,6 +66,40 @@ BackupView::BackupView(BRect frame)
 void
 BackupView::RefreshSizes()
 {
+	BPath homeDirectory;
+	find_directory(B_USER_DIRECTORY, &homeDirectory);
+	uint32 bytes = DirectorySize(&homeDirectory);
+	printf("%s: %" B_PRId32 "\n", __func__, bytes);
 	fHomeSize->SetText("100MB");
+
+	BPath sysSettingsDirectory;
+	find_directory(B_COMMON_SETTINGS_DIRECTORY, &sysSettingsDirectory);
+	//bytes = DirectorySize(&sysSettingsDirectory);
 	fSysSettingSize->SetText("10KB");
+}
+
+
+int32
+BackupView::DirectorySize(BPath* path)
+{
+	printf("%s: %s\n", __func__, path->Path());
+	BDirectory dir(path->Path());
+	int32 entries = dir.CountEntries();
+	printf("%s: items: %" B_PRId32 "\n", __func__, entries);
+	dir.Rewind();
+	int32 bytes = 0;
+	for (int32 i; i < entries; i++) {
+		BEntry entry;
+		dir.GetNextEntry(&entry);
+		struct stat st;
+		entry.GetStat(&st);
+		if (S_ISDIR(st.st_mode)) {
+			BPath path;
+			entry.GetPath(&path);
+			bytes += DirectorySize(&path);
+		} else {
+			bytes += st.st_size;
+		}
+	}
+	return bytes;
 }

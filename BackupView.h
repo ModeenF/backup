@@ -8,6 +8,7 @@
 
 
 #include <CheckBox.h>
+#include <Path.h>
 #include <StringView.h>
 #include <View.h>
 
@@ -17,6 +18,7 @@ public:
 							BackupView(BRect frame);
 			void				RefreshSizes();
 private:
+			int32				DirectorySize(BPath* path);
 			BCheckBox*			fHomeEnable;
 			BStringView*			fHomeSize;
 			BCheckBox*			fSysSettingEnable;
