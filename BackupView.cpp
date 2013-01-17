@@ -57,21 +57,26 @@ BackupView::BackupView(BRect frame)
 
 	// Create "Settings Group"
 	fHomeEnable = new BCheckBox("backup home",
-		"Home Directory", NULL);
-		fHomeEnable->SetValue(B_CONTROL_ON);
-	fHomeSize = new BStringView("home size", "");
+		"Home directory", new BMessage(kMsgUpdateSelection));
+	fHomeEnable->SetValue(B_CONTROL_ON);
+	fHomeSizeText = new BStringView("home size", "");
 
 	fSysSettingEnable = new BCheckBox("backup system",
-		"System Settings", NULL);
-		fSysSettingEnable->SetValue(B_CONTROL_ON);
-	fSysSettingSize = new BStringView("system setting size", "");
+		"System settings", new BMessage(kMsgUpdateSelection));
+	fSysSettingEnable->SetValue(B_CONTROL_ON);
+	fSysSettingSizeText = new BStringView("system setting size", "");
+
+	BStringView* backupSize = new BStringView("total size", "Total size:");
+	fBackupSizeText = new BStringView("backup size", "");
 
 	BGroupLayout* settingsGroup = BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
 		.AddGrid()
 			.Add(fHomeEnable, 0, 0)
-			.Add(fHomeSize, 1, 0)
+			.Add(fHomeSizeText, 1, 0)
 			.Add(fSysSettingEnable, 0, 1)
-			.Add(fSysSettingSize, 1, 1)
+			.Add(fSysSettingSizeText, 1, 1)
+			.Add(backupSize, 0, 2)
+			.Add(fBackupSizeText, 1, 2)
 		.End()
 		.AddGlue()
 		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING,
@@ -97,17 +102,33 @@ BackupView::BackupView(BRect frame)
 void
 BackupView::RefreshSizes()
 {
+	off_t totalSize = 0;
+
 	char sizeText[512];
+
+	// Refresh Home Directory
 	BPath homeDirectory;
 	find_directory(B_USER_DIRECTORY, &homeDirectory);
-	//uint32 bytes = DirectorySize(&homeDirectory);
-	size_to_string(DirectorySize(&homeDirectory), sizeText, 512);
-	fHomeSize->SetText(sizeText);
+	fHomeBytes = DirectorySize(&homeDirectory);
+	size_to_string(fHomeBytes, sizeText, 512);
+	fHomeSizeText->SetText(sizeText);
 
+	if ((fHomeEnable->Value() && B_CONTROL_ON) != 0)
+		totalSize += fHomeBytes;
+
+	// Refresh System Directory
 	BPath sysSettingsDirectory;
 	find_directory(B_COMMON_SETTINGS_DIRECTORY, &sysSettingsDirectory);
-	size_to_string(DirectorySize(&sysSettingsDirectory), sizeText, 512);
-	fSysSettingSize->SetText(sizeText);
+	fSysSettingBytes = DirectorySize(&sysSettingsDirectory);
+	size_to_string(fSysSettingBytes, sizeText, 512);
+	fSysSettingSizeText->SetText(sizeText);
+
+	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
+		totalSize += fSysSettingBytes;
+
+	// Update total backup size
+	size_to_string(totalSize, sizeText, 512);
+	fBackupSizeText->SetText(sizeText);
 }
 
 

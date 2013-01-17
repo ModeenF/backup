@@ -18,6 +18,7 @@
 
 
 const uint32 kMsgDoBackup = 'bkup';
+const uint32 kMsgUpdateSelection = 'upda';
 
 
 class BackupView : public BView {
@@ -29,9 +30,13 @@ public:
 private:
 			off_t				DirectorySize(BPath* path);
 			BCheckBox*			fHomeEnable;
-			BStringView*			fHomeSize;
+			BStringView*			fHomeSizeText;
+			off_t				fHomeBytes;
 			BCheckBox*			fSysSettingEnable;
-			BStringView*			fSysSettingSize;
+			BStringView*			fSysSettingSizeText;
+			off_t				fSysSettingBytes;
+
+			BStringView*			fBackupSizeText;
 };
 
 
