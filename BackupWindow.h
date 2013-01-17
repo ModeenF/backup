@@ -16,6 +16,9 @@ class BackupWindow : public BWindow {
 public:
 							BackupWindow(BRect frame);
 	virtual	bool					QuitRequested();
+	virtual	void					MessageReceived(BMessage* message);
+
+		status_t				DoBackup(uint32 tasks);
 
 private:
 		BackupView*				fBackupView;

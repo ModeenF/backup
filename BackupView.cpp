@@ -78,7 +78,8 @@ BackupView::BackupView(BRect frame)
 			B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
 	;
 
-	BButton* button = new BButton(BRect(0, 0, 10, 10), "backup", "Backup!", NULL);
+	BButton* button = new BButton(BRect(0, 0, 10, 10), "backup", "Backup!",
+		new BMessage(kMsgDoBackup));
 	button->MakeDefault(true);
 
 	// Attach all of the LayoutGroups to the view
@@ -107,6 +108,20 @@ BackupView::RefreshSizes()
 	find_directory(B_COMMON_SETTINGS_DIRECTORY, &sysSettingsDirectory);
 	size_to_string(DirectorySize(&sysSettingsDirectory), sizeText, 512);
 	fSysSettingSize->SetText(sizeText);
+}
+
+
+uint32
+BackupView::GetTasks()
+{
+	uint32 tasks = 0;
+
+	if ((fHomeEnable->Value() && B_CONTROL_ON) != 0)
+		tasks |= DO_BACKUP_USER_HOME;
+	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
+		tasks |= DO_BACKUP_SYS_SETTINGS;
+
+	return tasks;
 }
 
 

@@ -13,10 +13,19 @@
 #include <View.h>
 
 
+#define DO_BACKUP_USER_HOME		(1<<0)
+#define DO_BACKUP_SYS_SETTINGS		(1<<1)
+
+
+const uint32 kMsgDoBackup = 'bkup';
+
+
 class BackupView : public BView {
 public:
 							BackupView(BRect frame);
 			void				RefreshSizes();
+			uint32				GetTasks();
+
 private:
 			off_t				DirectorySize(BPath* path);
 			BCheckBox*			fHomeEnable;
