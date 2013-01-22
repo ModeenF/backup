@@ -15,6 +15,7 @@
 
 #define DO_BACKUP_USER_HOME		(1<<0)
 #define DO_BACKUP_SYS_SETTINGS		(1<<1)
+#define DO_BACKUP_APPS			(1<<2)
 
 
 const uint32 kMsgDoBackup = 'bkup';
@@ -36,6 +37,9 @@ private:
 			BCheckBox*			fSysSettingEnable;
 			BStringView*			fSysSettingSizeText;
 			off_t				fSysSettingBytes;
+			BCheckBox*			fAppEnable;
+			BStringView*			fAppSizeText;
+			off_t				fAppBytes;
 
 			BStringView*			fBackupSizeText;
 };

@@ -66,6 +66,11 @@ BackupView::BackupView(BRect frame)
 	fSysSettingEnable->SetValue(B_CONTROL_ON);
 	fSysSettingSizeText = new BStringView("system setting size", "");
 
+	fAppEnable = new BCheckBox("backup apps",
+		"Installed Applications", new BMessage(kMsgUpdateSelection));
+	fAppEnable->SetValue(B_CONTROL_OFF);
+	fAppSizeText = new BStringView("user app size", "");
+
 	BStringView* backupSize = new BStringView("total size", "Total size:");
 	fBackupSizeText = new BStringView("backup size", "");
 
@@ -75,8 +80,10 @@ BackupView::BackupView(BRect frame)
 			.Add(fHomeSizeText, 1, 0)
 			.Add(fSysSettingEnable, 0, 1)
 			.Add(fSysSettingSizeText, 1, 1)
-			.Add(backupSize, 0, 2)
-			.Add(fBackupSizeText, 1, 2)
+			.Add(fAppEnable, 0, 2)
+			.Add(fAppSizeText, 1, 2)
+			.Add(backupSize, 0, 3)
+			.Add(fBackupSizeText, 1, 3)
 		.End()
 		.AddGlue()
 		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING,
@@ -118,6 +125,13 @@ BackupView::RefreshSizes()
 	size_to_string(fSysSettingBytes, sizeText, 512);
 	fSysSettingSizeText->SetText(sizeText);
 
+	// Refresh Application Directory
+	BPath appsDirectory;
+	find_directory(B_APPS_DIRECTORY, &appsDirectory);
+	fAppBytes = DirectorySize(&appsDirectory);
+	size_to_string(fAppBytes, sizeText, 512);
+	fAppSizeText->SetText(sizeText);
+
 	RefreshTotal();
 }
 
@@ -131,6 +145,8 @@ BackupView::RefreshTotal()
 		totalSize += fHomeBytes;
 	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
 		totalSize += fSysSettingBytes;
+	if ((fAppEnable->Value() && B_CONTROL_ON) != 0)
+		totalSize += fAppBytes;
 
 	// Update total backup size
 	size_to_string(totalSize, sizeText, 512);
@@ -147,6 +163,8 @@ BackupView::GetTasks()
 		tasks |= DO_BACKUP_USER_HOME;
 	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
 		tasks |= DO_BACKUP_SYS_SETTINGS;
+	if ((fAppEnable->Value() && B_CONTROL_ON) != 0)
+		tasks |= DO_BACKUP_APPS;
 
 	return tasks;
 }
