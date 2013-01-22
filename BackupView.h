@@ -24,11 +24,12 @@ const uint32 kMsgUpdateSelection = 'upda';
 class BackupView : public BView {
 public:
 							BackupView(BRect frame);
-			void				RefreshSizes();
+			void				RefreshTotal();
 			uint32				GetTasks();
 
 private:
 			off_t				DirectorySize(BPath* path);
+			void				RefreshSizes();
 			BCheckBox*			fHomeEnable;
 			BStringView*			fHomeSizeText;
 			off_t				fHomeBytes;

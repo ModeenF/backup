@@ -102,8 +102,6 @@ BackupView::BackupView(BRect frame)
 void
 BackupView::RefreshSizes()
 {
-	off_t totalSize = 0;
-
 	char sizeText[512];
 
 	// Refresh Home Directory
@@ -113,9 +111,6 @@ BackupView::RefreshSizes()
 	size_to_string(fHomeBytes, sizeText, 512);
 	fHomeSizeText->SetText(sizeText);
 
-	if ((fHomeEnable->Value() && B_CONTROL_ON) != 0)
-		totalSize += fHomeBytes;
-
 	// Refresh System Directory
 	BPath sysSettingsDirectory;
 	find_directory(B_COMMON_SETTINGS_DIRECTORY, &sysSettingsDirectory);
@@ -123,6 +118,17 @@ BackupView::RefreshSizes()
 	size_to_string(fSysSettingBytes, sizeText, 512);
 	fSysSettingSizeText->SetText(sizeText);
 
+	RefreshTotal();
+}
+
+
+void
+BackupView::RefreshTotal()
+{
+	char sizeText[512];
+	off_t totalSize = 0;
+	if ((fHomeEnable->Value() && B_CONTROL_ON) != 0)
+		totalSize += fHomeBytes;
 	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
 		totalSize += fSysSettingBytes;
 

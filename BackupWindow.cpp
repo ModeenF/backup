@@ -44,7 +44,7 @@ BackupWindow::MessageReceived(BMessage *msg)
 			DoBackup(fBackupView->GetTasks());
 			break;
 		case kMsgUpdateSelection:
-			fBackupView->RefreshSizes();
+			fBackupView->RefreshTotal();
 			break;
 		default:
 			BWindow::MessageReceived(msg);
