@@ -29,7 +29,7 @@ public:
 			uint32				GetTasks();
 
 private:
-			off_t				DirectorySize(BPath* path);
+			off_t				DirectorySize(BPath* path, bool recurse = true);
 			void				RefreshSizes();
 			BCheckBox*			fUserSettingEnable;
 			BStringView*		fUserSettingSizeText;

@@ -114,21 +114,21 @@ BackupView::RefreshSizes()
 	// Refresh Home Directory
 	BPath userSettingDirectory;
 	find_directory(B_USER_SETTINGS_DIRECTORY, &userSettingDirectory);
-	fUserSettingBytes = DirectorySize(&userSettingDirectory);
+	fUserSettingBytes = DirectorySize(&userSettingDirectory, true);
 	size_to_string(fUserSettingBytes, sizeText, 512);
 	fUserSettingSizeText->SetText(sizeText);
 
 	// Refresh System Directory
 	BPath sysSettingDirectory;
 	find_directory(B_SYSTEM_SETTINGS_DIRECTORY, &sysSettingDirectory);
-	fSysSettingBytes = DirectorySize(&sysSettingDirectory);
+	fSysSettingBytes = DirectorySize(&sysSettingDirectory, true);
 	size_to_string(fSysSettingBytes, sizeText, 512);
 	fSysSettingSizeText->SetText(sizeText);
 
 	// Refresh System Package Directory
 	BPath sysPackageDirectory;
-	find_directory(B_APPS_DIRECTORY, &sysPackageDirectory);
-	fSysPackageBytes = DirectorySize(&sysPackageDirectory);
+	find_directory(B_SYSTEM_PACKAGES_DIRECTORY, &sysPackageDirectory);
+	fSysPackageBytes = DirectorySize(&sysPackageDirectory, false);
 	size_to_string(fSysPackageBytes, sizeText, 512);
 	fSysPackageSizeText->SetText(sizeText);
 
@@ -171,20 +171,25 @@ BackupView::GetTasks()
 
 
 off_t
-BackupView::DirectorySize(BPath* path)
+BackupView::DirectorySize(BPath* path, bool recurse)
 {
+	off_t bytes = 0;
+	if (!path) {
+		printf("Error: Invalid path passed!\n");
+		return bytes;
+	}
+
 	printf("%s: %s\n", __func__, path->Path());
 	BDirectory dir(path->Path());
 	int32 entries = dir.CountEntries();
 	printf("%s: items: %" B_PRId32 "\n", __func__, entries);
 	dir.Rewind();
-	off_t bytes = 0;
-	for (int32 i; i < entries; i++) {
+	for (int32 i = 0; i <= entries; i++) {
 		BEntry entry;
 		dir.GetNextEntry(&entry);
 		struct stat st;
 		entry.GetStat(&st);
-		if (S_ISDIR(st.st_mode)) {
+		if (S_ISDIR(st.st_mode) && recurse == true) {
 			BPath path;
 			entry.GetPath(&path);
 			bytes += DirectorySize(&path);
