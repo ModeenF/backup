@@ -120,7 +120,7 @@ BackupView::RefreshSizes()
 
 	// Refresh System Directory
 	BPath sysSettingsDirectory;
-	find_directory(B_COMMON_SETTINGS_DIRECTORY, &sysSettingsDirectory);
+	find_directory(B_SYSTEM_SETTINGS_DIRECTORY, &sysSettingsDirectory);
 	fSysSettingBytes = DirectorySize(&sysSettingsDirectory);
 	size_to_string(fSysSettingBytes, sizeText, 512);
 	fSysSettingSizeText->SetText(sizeText);
@@ -173,10 +173,10 @@ BackupView::GetTasks()
 off_t
 BackupView::DirectorySize(BPath* path)
 {
-	//printf("%s: %s\n", __func__, path->Path());
+	printf("%s: %s\n", __func__, path->Path());
 	BDirectory dir(path->Path());
 	int32 entries = dir.CountEntries();
-	//printf("%s: items: %" B_PRId32 "\n", __func__, entries);
+	printf("%s: items: %" B_PRId32 "\n", __func__, entries);
 	dir.Rewind();
 	off_t bytes = 0;
 	for (int32 i; i < entries; i++) {
