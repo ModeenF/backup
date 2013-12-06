@@ -14,6 +14,7 @@
 #include <Entry.h>
 #include <LayoutBuilder.h>
 #include <ListView.h>
+#include <ScrollView.h>
 
 #include <stdio.h>
 
@@ -165,7 +166,7 @@ BackupView::BackupView(BRect frame)
 	SetHighColor(0, 0, 0);
 	SetLayout(new BGroupLayout(B_VERTICAL));
 
-	fBackupList = new BListView(BRect(0, 0, 10, 10), "items");
+	fBackupList = new BListView(BRect(0, 0, 0, 0), "items", B_SINGLE_SELECTION_LIST, B_FOLLOW_ALL_SIDES);
 
 	for (uint32 i = 0; i < LOCATION_COUNT; i++) {
 		//BListItem* item = new BListItem(gLocationMap[i].name, new BMessage(kMsgUpdateSelection));
@@ -193,7 +194,7 @@ BackupView::BackupView(BRect frame)
 
 	// Attach all of the LayoutGroups to the view
 	AddChild(BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
-		.Add(fBackupList)
+		.Add(new BScrollView("backup item list", fBackupList, B_FOLLOW_LEFT | B_FOLLOW_TOP, 0, false, true))
 		.Add(fBackupSizeText)
 		.Add(button)
 	);
