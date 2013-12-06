@@ -12,10 +12,17 @@
 #include <Button.h>
 #include <Directory.h>
 #include <Entry.h>
-#include <FindDirectory.h>
 #include <LayoutBuilder.h>
+#include <ListView.h>
 
 #include <stdio.h>
+
+
+struct location_map gLocationMap[LOCATION_COUNT] = {
+    { (1<<0), B_USER_SETTINGS_DIRECTORY, "User Settings", "User configurations and settings", true, true },
+    { (1<<1), B_SYSTEM_SETTINGS_DIRECTORY, "System Settings", "System configurations and settings", true, true },
+    { (1<<2), B_SYSTEM_PACKAGES_DIRECTORY, "System Packages", "Installed system packages", false, false },
+};
 
 
 static void
@@ -46,6 +53,115 @@ size_to_string(off_t byteCount, char* name, int maxLength)
 }
 
 
+// #pragma mark - BackupListItem
+
+
+BackupListItem::BackupListItem(uint32 mapItem, const char* name, const char* description)
+	:
+	BListItem(0, false),
+	fName(name),
+	fDescription(description)
+{
+	fEnabled = new BCheckBox(BRect(0, 0, 16, 16), fName.String(),
+		fName.String(), new BMessage(kMsgUpdateSelection));
+}
+
+
+BackupListItem::~BackupListItem()
+{
+
+}
+
+
+void
+BackupListItem::DrawItem(BView* owner, BRect /*bounds*/, bool complete)
+{
+	BListView* list = dynamic_cast<BListView*>(owner);
+
+	if (list == NULL)
+		return;
+
+	owner->PushState();
+
+	BRect bounds = list->ItemFrame(list->IndexOf(this));
+
+	//rgb_color highColor = list->HighColor();
+	rgb_color lowColor = list->LowColor();
+
+	list->SetDrawingMode(B_OP_OVER);
+
+	if (IsSelected() || complete) {
+		if (IsSelected()) {
+			list->SetHighColor(ui_color(B_LIST_SELECTED_BACKGROUND_COLOR));
+			list->SetLowColor(list->HighColor());
+		} else
+			list->SetHighColor(lowColor);
+
+		list->FillRect(bounds);
+	}
+
+	rgb_color textColor;
+	rgb_color backgroundColor;
+
+	if (IsSelected()) {
+		textColor = ui_color(B_LIST_SELECTED_ITEM_TEXT_COLOR);
+		backgroundColor = ui_color(B_LIST_SELECTED_BACKGROUND_COLOR);
+	} else {
+		textColor = ui_color(B_LIST_ITEM_TEXT_COLOR);
+		backgroundColor = ui_color(B_LIST_BACKGROUND_COLOR);
+	}
+	list->SetHighColor(textColor);
+	list->SetLowColor(backgroundColor);
+
+	//BCheckBox
+	BPoint checkboxPt = bounds.LeftTop();
+	BPoint namePt = bounds.LeftTop();
+	BPoint descriptionPt = bounds.LeftTop();
+
+	namePt += BPoint(16 + 12, fFirstlineOffset);
+	descriptionPt += BPoint(16 + 12, fSecondlineOffset);
+	
+	list->SetFont(be_bold_font);
+	list->DrawString(fName.String(), namePt);
+
+	if (textColor.red + textColor.green + textColor.blue > 128 * 3)
+		list->SetHighColor(tint_color(textColor, B_DARKEN_1_TINT));
+	else
+		list->SetHighColor(tint_color(textColor, B_LIGHTEN_1_TINT));
+
+	list->SetFont(be_plain_font);
+	list->SetFontSize(11);
+	list->SetHighColor(ui_color(B_LIST_SELECTED_ITEM_TEXT_COLOR));
+	list->DrawString(fDescription.String(), descriptionPt);
+
+	fEnabled->MoveTo(checkboxPt.x + 5, checkboxPt.y + 5);
+	list->AddChild(fEnabled);
+
+	owner->PopState();
+}
+
+
+void
+BackupListItem::Update(BView* owner, const BFont* font)
+{
+	BListItem::Update(owner, font);
+	font_height height;
+	font->GetHeight(&height);
+
+	float lineHeight = ceilf(height.ascent) + ceilf(height.descent)
+		+ ceilf(height.leading);
+
+	fFirstlineOffset = 2 + ceilf(height.ascent + height.leading / 2);
+	fSecondlineOffset = fFirstlineOffset + lineHeight;
+
+	SetHeight(2 * lineHeight + 4);
+		// either to the text height or icon height, whichever is taller
+}
+
+
+// #pragma mark - BackupView
+
+
 BackupView::BackupView(BRect frame)
 	:
 	BView(frame, "BackupView", B_FOLLOW_ALL_SIDES, B_WILL_DRAW)
@@ -55,40 +171,27 @@ BackupView::BackupView(BRect frame)
 	SetHighColor(0, 0, 0);
 	SetLayout(new BGroupLayout(B_VERTICAL));
 
-	// Create "Settings Group"
-	fUserSettingEnable = new BCheckBox("backup user settings",
-		"User settings", new BMessage(kMsgUpdateSelection));
-	fUserSettingEnable->SetValue(B_CONTROL_ON);
-	fUserSettingSizeText = new BStringView("user settings size", "");
+	fBackupList = new BListView(BRect(0, 0, 10, 10), "items");
 
-	fSysSettingEnable = new BCheckBox("backup system",
-		"System settings", new BMessage(kMsgUpdateSelection));
-	fSysSettingEnable->SetValue(B_CONTROL_ON);
-	fSysSettingSizeText = new BStringView("system setting size", "");
+	for (uint32 i = 0; i < LOCATION_COUNT; i++) {
+		//BListItem* item = new BListItem(gLocationMap[i].name, new BMessage(kMsgUpdateSelection));
+		//BListItem* item = new BListItem();
+		//fLocationEnable[i] = new BCheckBox(gLocationMap[i].name,
+		//	gLocationMap[i].name, new BMessage(kMsgUpdateSelection));
+		//fLocationEnable[i]->SetValue(gLocationMap[i].defaultValue
+		//	? B_CONTROL_ON : B_CONTROL_OFF);
 
-	fSysPackageEnable = new BCheckBox("backup apps",
-		"Installed Packages", new BMessage(kMsgUpdateSelection));
-	fSysPackageEnable->SetValue(B_CONTROL_OFF);
-	fSysPackageSizeText = new BStringView("sys app size", "");
+		//fLocationSizeText[i] = new BStringView(gLocationMap[i].name, "");
 
+		//list->AddItem(item);
+		BackupListItem* item = new BackupListItem(i, gLocationMap[i].name,
+			gLocationMap[i].description);
+		fBackupList->AddItem(item);
+	}
+
+	// Add total size
 	BStringView* backupSize = new BStringView("total size", "Total size:");
 	fBackupSizeText = new BStringView("backup size", "");
-
-	BGroupLayout* settingsGroup = BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
-		.AddGrid()
-			.Add(fUserSettingEnable, 0, 0)
-			.Add(fUserSettingSizeText, 1, 0)
-			.Add(fSysSettingEnable, 0, 1)
-			.Add(fSysSettingSizeText, 1, 1)
-			.Add(fSysPackageEnable, 0, 2)
-			.Add(fSysPackageSizeText, 1, 2)
-			.Add(backupSize, 0, 3)
-			.Add(fBackupSizeText, 1, 3)
-		.End()
-		.AddGlue()
-		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING,
-			B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
-	;
 
 	BButton* button = new BButton(BRect(0, 0, 10, 10), "backup", "Backup!",
 		new BMessage(kMsgDoBackup));
@@ -96,7 +199,8 @@ BackupView::BackupView(BRect frame)
 
 	// Attach all of the LayoutGroups to the view
 	AddChild(BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
-		.Add(settingsGroup)
+		.Add(fBackupList)
+		.Add(fBackupSizeText)
 		.Add(button)
 	);
 
@@ -111,26 +215,26 @@ BackupView::RefreshSizes()
 {
 	char sizeText[512];
 
-	// Refresh Home Directory
-	BPath userSettingDirectory;
-	find_directory(B_USER_SETTINGS_DIRECTORY, &userSettingDirectory);
-	fUserSettingBytes = DirectorySize(&userSettingDirectory, true);
-	size_to_string(fUserSettingBytes, sizeText, 512);
-	fUserSettingSizeText->SetText(sizeText);
-
-	// Refresh System Directory
-	BPath sysSettingDirectory;
-	find_directory(B_SYSTEM_SETTINGS_DIRECTORY, &sysSettingDirectory);
-	fSysSettingBytes = DirectorySize(&sysSettingDirectory, true);
-	size_to_string(fSysSettingBytes, sizeText, 512);
-	fSysSettingSizeText->SetText(sizeText);
-
-	// Refresh System Package Directory
-	BPath sysPackageDirectory;
-	find_directory(B_SYSTEM_PACKAGES_DIRECTORY, &sysPackageDirectory);
-	fSysPackageBytes = DirectorySize(&sysPackageDirectory, false);
-	size_to_string(fSysPackageBytes, sizeText, 512);
-	fSysPackageSizeText->SetText(sizeText);
+//	// Refresh Home Directory
+//	BPath userSettingDirectory;
+//	find_directory(B_USER_SETTINGS_DIRECTORY, &userSettingDirectory);
+//	fUserSettingBytes = DirectorySize(&userSettingDirectory, true);
+//	size_to_string(fUserSettingBytes, sizeText, 512);
+//	fUserSettingSizeText->SetText(sizeText);
+//
+//	// Refresh System Directory
+//	BPath sysSettingDirectory;
+//	find_directory(B_SYSTEM_SETTINGS_DIRECTORY, &sysSettingDirectory);
+//	fSysSettingBytes = DirectorySize(&sysSettingDirectory, true);
+//	size_to_string(fSysSettingBytes, sizeText, 512);
+//	fSysSettingSizeText->SetText(sizeText);
+//
+//	// Refresh System Package Directory
+//	BPath sysPackageDirectory;
+//	find_directory(B_SYSTEM_PACKAGES_DIRECTORY, &sysPackageDirectory);
+//	fSysPackageBytes = DirectorySize(&sysPackageDirectory, false);
+//	size_to_string(fSysPackageBytes, sizeText, 512);
+//	fSysPackageSizeText->SetText(sizeText);
 
 	RefreshTotal();
 }
@@ -141,12 +245,13 @@ BackupView::RefreshTotal()
 {
 	char sizeText[512];
 	off_t totalSize = 0;
-	if ((fUserSettingEnable->Value() && B_CONTROL_ON) != 0)
-		totalSize += fUserSettingBytes;
-	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
-		totalSize += fSysSettingBytes;
-	if ((fSysPackageEnable->Value() && B_CONTROL_ON) != 0)
-		totalSize += fSysPackageBytes;
+
+//	if ((fUserSettingEnable->Value() && B_CONTROL_ON) != 0)
+//		totalSize += fUserSettingBytes;
+//	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
+//		totalSize += fSysSettingBytes;
+//	if ((fSysPackageEnable->Value() && B_CONTROL_ON) != 0)
+//		totalSize += fSysPackageBytes;
 
 	// Update total backup size
 	size_to_string(totalSize, sizeText, 512);
@@ -159,12 +264,12 @@ BackupView::GetTasks()
 {
 	uint32 tasks = 0;
 
-	if ((fUserSettingEnable->Value() && B_CONTROL_ON) != 0)
-		tasks |= DO_BACKUP_USER_HOME;
-	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
-		tasks |= DO_BACKUP_SYS_SETTINGS;
-	if ((fSysPackageEnable->Value() && B_CONTROL_ON) != 0)
-		tasks |= DO_BACKUP_APPS;
+	//if ((fUserSettingEnable->Value() && B_CONTROL_ON) != 0)
+	//	tasks |= DO_BACKUP_USER_HOME;
+	//if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
+	//	tasks |= DO_BACKUP_SYS_SETTINGS;
+	//if ((fSysPackageEnable->Value() && B_CONTROL_ON) != 0)
+	//	tasks |= DO_BACKUP_APPS;
 
 	return tasks;
 }

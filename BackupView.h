@@ -8,9 +8,12 @@
 
 
 #include <CheckBox.h>
+#include <FindDirectory.h>
 #include <Path.h>
+#include <String.h>
 #include <StringView.h>
 #include <View.h>
+#include <ListItem.h>
 
 
 #define DO_BACKUP_USER_HOME		(1<<0)
@@ -20,6 +23,36 @@
 
 const uint32 kMsgDoBackup = 'bkup';
 const uint32 kMsgUpdateSelection = 'upda';
+
+#define LOCATION_COUNT  3
+struct location_map {
+	uint32 flag;
+    uint32 location;
+    const char* name;
+	const char* description;
+	bool defaultValue;
+    bool recurse;
+};
+
+
+class BackupListItem : public BListItem {
+public:
+								BackupListItem(uint32 mapItem, const char* name,
+									const char* description);
+								~BackupListItem();
+
+			void				DrawItem(BView* owner,
+									BRect bounds, bool complete);
+			void				Update(BView* owner, const BFont* font);
+
+private:
+			BString				fName;
+			BString				fDescription;
+			BCheckBox*			fEnabled;
+
+			float				fFirstlineOffset;
+			float				fSecondlineOffset;
+};
 
 
 class BackupView : public BView {
@@ -31,17 +64,8 @@ public:
 private:
 			off_t				DirectorySize(BPath* path, bool recurse = true);
 			void				RefreshSizes();
-			BCheckBox*			fUserSettingEnable;
-			BStringView*		fUserSettingSizeText;
-			off_t				fUserSettingBytes;
-			BCheckBox*			fSysSettingEnable;
-			BStringView*		fSysSettingSizeText;
-			off_t				fSysSettingBytes;
 
-			BCheckBox*			fSysPackageEnable;
-			BStringView*		fSysPackageSizeText;
-			off_t				fSysPackageBytes;
-
+			BListView*			fBackupList;
 			BStringView*		fBackupSizeText;
 };
 
