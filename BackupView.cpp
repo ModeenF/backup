@@ -178,21 +178,20 @@ BackupView::DirectorySize(BPath* path, bool recurse)
 		printf("Error: Invalid path passed!\n");
 		return bytes;
 	}
-
-	printf("%s: %s\n", __func__, path->Path());
+	//printf("%s: %s\n", __func__, path->Path());
 	BDirectory dir(path->Path());
 	int32 entries = dir.CountEntries();
-	printf("%s: items: %" B_PRId32 "\n", __func__, entries);
+	//printf("%s: items: %" B_PRId32 "\n", __func__, entries);
 	dir.Rewind();
-	for (int32 i = 0; i <= entries; i++) {
+	for (int32 i = 0; i < entries; i++) {
 		BEntry entry;
 		dir.GetNextEntry(&entry);
 		struct stat st;
 		entry.GetStat(&st);
 		if (S_ISDIR(st.st_mode) && recurse == true) {
-			BPath path;
-			entry.GetPath(&path);
-			bytes += DirectorySize(&path);
+			BPath nextPath;
+			entry.GetPath(&nextPath);
+			bytes += DirectorySize(&nextPath);
 		} else {
 			bytes += st.st_size;
 		}
