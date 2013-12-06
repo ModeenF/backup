@@ -62,8 +62,6 @@ BackupListItem::BackupListItem(uint32 mapItem, const char* name, const char* des
 	fName(name),
 	fDescription(description)
 {
-	fEnabled = new BCheckBox(BRect(0, 0, 16, 16), fName.String(),
-		fName.String(), new BMessage(kMsgUpdateSelection));
 }
 
 
@@ -91,25 +89,13 @@ BackupListItem::DrawItem(BView* owner, BRect /*bounds*/, bool complete)
 	list->SetDrawingMode(B_OP_OVER);
 
 	if (IsSelected() || complete) {
-		if (IsSelected()) {
-			list->SetHighColor(ui_color(B_LIST_SELECTED_BACKGROUND_COLOR));
-			list->SetLowColor(list->HighColor());
-		} else
-			list->SetHighColor(lowColor);
-
+		list->SetHighColor(lowColor);
 		list->FillRect(bounds);
 	}
 
-	rgb_color textColor;
-	rgb_color backgroundColor;
+	rgb_color textColor = ui_color(B_LIST_ITEM_TEXT_COLOR);
+	rgb_color backgroundColor = ui_color(B_LIST_BACKGROUND_COLOR);
 
-	if (IsSelected()) {
-		textColor = ui_color(B_LIST_SELECTED_ITEM_TEXT_COLOR);
-		backgroundColor = ui_color(B_LIST_SELECTED_BACKGROUND_COLOR);
-	} else {
-		textColor = ui_color(B_LIST_ITEM_TEXT_COLOR);
-		backgroundColor = ui_color(B_LIST_BACKGROUND_COLOR);
-	}
 	list->SetHighColor(textColor);
 	list->SetLowColor(backgroundColor);
 
@@ -120,6 +106,7 @@ BackupListItem::DrawItem(BView* owner, BRect /*bounds*/, bool complete)
 
 	namePt += BPoint(16 + 12, fFirstlineOffset);
 	descriptionPt += BPoint(16 + 12, fSecondlineOffset);
+	checkboxPt += BPoint(5, 0);
 	
 	list->SetFont(be_bold_font);
 	list->DrawString(fName.String(), namePt);
@@ -134,8 +121,15 @@ BackupListItem::DrawItem(BView* owner, BRect /*bounds*/, bool complete)
 	list->SetHighColor(ui_color(B_LIST_SELECTED_ITEM_TEXT_COLOR));
 	list->DrawString(fDescription.String(), descriptionPt);
 
-	fEnabled->MoveTo(checkboxPt.x + 5, checkboxPt.y + 5);
-	list->AddChild(fEnabled);
+	if (!fEnabled) {
+		fEnabled = new BCheckBox(BRect(0, 0, 16, 16), fName.String(),
+			fName.String(), new BMessage(kMsgUpdateSelection));
+		list->AddChild(fEnabled);
+	}
+
+	fEnabled->SetHighColor(textColor);
+    fEnabled->SetLowColor(backgroundColor);
+	fEnabled->MoveTo(checkboxPt.x, checkboxPt.y);
 
 	owner->PopState();
 }
