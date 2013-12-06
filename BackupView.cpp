@@ -56,32 +56,32 @@ BackupView::BackupView(BRect frame)
 	SetLayout(new BGroupLayout(B_VERTICAL));
 
 	// Create "Settings Group"
-	fHomeEnable = new BCheckBox("backup home",
-		"Home directory", new BMessage(kMsgUpdateSelection));
-	fHomeEnable->SetValue(B_CONTROL_ON);
-	fHomeSizeText = new BStringView("home size", "");
+	fUserSettingEnable = new BCheckBox("backup user settings",
+		"User settings", new BMessage(kMsgUpdateSelection));
+	fUserSettingEnable->SetValue(B_CONTROL_ON);
+	fUserSettingSizeText = new BStringView("user settings size", "");
 
 	fSysSettingEnable = new BCheckBox("backup system",
 		"System settings", new BMessage(kMsgUpdateSelection));
 	fSysSettingEnable->SetValue(B_CONTROL_ON);
 	fSysSettingSizeText = new BStringView("system setting size", "");
 
-	fAppEnable = new BCheckBox("backup apps",
-		"Installed Applications", new BMessage(kMsgUpdateSelection));
-	fAppEnable->SetValue(B_CONTROL_OFF);
-	fAppSizeText = new BStringView("user app size", "");
+	fSysPackageEnable = new BCheckBox("backup apps",
+		"Installed Packages", new BMessage(kMsgUpdateSelection));
+	fSysPackageEnable->SetValue(B_CONTROL_OFF);
+	fSysPackageSizeText = new BStringView("sys app size", "");
 
 	BStringView* backupSize = new BStringView("total size", "Total size:");
 	fBackupSizeText = new BStringView("backup size", "");
 
 	BGroupLayout* settingsGroup = BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
 		.AddGrid()
-			.Add(fHomeEnable, 0, 0)
-			.Add(fHomeSizeText, 1, 0)
+			.Add(fUserSettingEnable, 0, 0)
+			.Add(fUserSettingSizeText, 1, 0)
 			.Add(fSysSettingEnable, 0, 1)
 			.Add(fSysSettingSizeText, 1, 1)
-			.Add(fAppEnable, 0, 2)
-			.Add(fAppSizeText, 1, 2)
+			.Add(fSysPackageEnable, 0, 2)
+			.Add(fSysPackageSizeText, 1, 2)
 			.Add(backupSize, 0, 3)
 			.Add(fBackupSizeText, 1, 3)
 		.End()
@@ -112,25 +112,25 @@ BackupView::RefreshSizes()
 	char sizeText[512];
 
 	// Refresh Home Directory
-	BPath homeDirectory;
-	find_directory(B_USER_DIRECTORY, &homeDirectory);
-	fHomeBytes = DirectorySize(&homeDirectory);
-	size_to_string(fHomeBytes, sizeText, 512);
-	fHomeSizeText->SetText(sizeText);
+	BPath userSettingDirectory;
+	find_directory(B_USER_SETTINGS_DIRECTORY, &userSettingDirectory);
+	fUserSettingBytes = DirectorySize(&userSettingDirectory);
+	size_to_string(fUserSettingBytes, sizeText, 512);
+	fUserSettingSizeText->SetText(sizeText);
 
 	// Refresh System Directory
-	BPath sysSettingsDirectory;
-	find_directory(B_SYSTEM_SETTINGS_DIRECTORY, &sysSettingsDirectory);
-	fSysSettingBytes = DirectorySize(&sysSettingsDirectory);
+	BPath sysSettingDirectory;
+	find_directory(B_SYSTEM_SETTINGS_DIRECTORY, &sysSettingDirectory);
+	fSysSettingBytes = DirectorySize(&sysSettingDirectory);
 	size_to_string(fSysSettingBytes, sizeText, 512);
 	fSysSettingSizeText->SetText(sizeText);
 
-	// Refresh Application Directory
-	BPath appsDirectory;
-	find_directory(B_APPS_DIRECTORY, &appsDirectory);
-	fAppBytes = DirectorySize(&appsDirectory);
-	size_to_string(fAppBytes, sizeText, 512);
-	fAppSizeText->SetText(sizeText);
+	// Refresh System Package Directory
+	BPath sysPackageDirectory;
+	find_directory(B_APPS_DIRECTORY, &sysPackageDirectory);
+	fSysPackageBytes = DirectorySize(&sysPackageDirectory);
+	size_to_string(fSysPackageBytes, sizeText, 512);
+	fSysPackageSizeText->SetText(sizeText);
 
 	RefreshTotal();
 }
@@ -141,12 +141,12 @@ BackupView::RefreshTotal()
 {
 	char sizeText[512];
 	off_t totalSize = 0;
-	if ((fHomeEnable->Value() && B_CONTROL_ON) != 0)
-		totalSize += fHomeBytes;
+	if ((fUserSettingEnable->Value() && B_CONTROL_ON) != 0)
+		totalSize += fUserSettingBytes;
 	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
 		totalSize += fSysSettingBytes;
-	if ((fAppEnable->Value() && B_CONTROL_ON) != 0)
-		totalSize += fAppBytes;
+	if ((fSysPackageEnable->Value() && B_CONTROL_ON) != 0)
+		totalSize += fSysPackageBytes;
 
 	// Update total backup size
 	size_to_string(totalSize, sizeText, 512);
@@ -159,11 +159,11 @@ BackupView::GetTasks()
 {
 	uint32 tasks = 0;
 
-	if ((fHomeEnable->Value() && B_CONTROL_ON) != 0)
+	if ((fUserSettingEnable->Value() && B_CONTROL_ON) != 0)
 		tasks |= DO_BACKUP_USER_HOME;
 	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
 		tasks |= DO_BACKUP_SYS_SETTINGS;
-	if ((fAppEnable->Value() && B_CONTROL_ON) != 0)
+	if ((fSysPackageEnable->Value() && B_CONTROL_ON) != 0)
 		tasks |= DO_BACKUP_APPS;
 
 	return tasks;
