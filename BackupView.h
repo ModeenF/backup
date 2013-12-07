@@ -46,6 +46,7 @@ public:
 			void				Update(BView* owner, const BFont* font);
 
 private:
+			uint32				fIndex;
 			BString				fName;
 			BString				fDescription;
 			BCheckBox*			fEnabled;

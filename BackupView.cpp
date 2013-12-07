@@ -60,7 +60,9 @@ size_to_string(off_t byteCount, char* name, int maxLength)
 BackupListItem::BackupListItem(uint32 mapItem, const char* name, const char* description)
 	:
 	BListItem(0, false),
+	fIndex(mapItem),
 	fName(name),
+	fEnabled(NULL),
 	fDescription(description)
 {
 }
@@ -100,14 +102,13 @@ BackupListItem::DrawItem(BView* owner, BRect /*bounds*/, bool complete)
 	list->SetHighColor(textColor);
 	list->SetLowColor(backgroundColor);
 
-	//BCheckBox
 	BPoint checkboxPt = bounds.LeftTop();
 	BPoint namePt = bounds.LeftTop();
 	BPoint descriptionPt = bounds.LeftTop();
 
-	namePt += BPoint(16 + 12, fFirstlineOffset);
-	descriptionPt += BPoint(16 + 12, fSecondlineOffset);
-	checkboxPt += BPoint(5, 0);
+	namePt += BPoint(16 + 8, fFirstlineOffset);
+	descriptionPt += BPoint(16 + 8, fSecondlineOffset);
+	checkboxPt += BPoint(4, 2);
 	
 	list->SetFont(be_bold_font);
 	list->DrawString(fName.String(), namePt);
@@ -129,7 +130,7 @@ BackupListItem::DrawItem(BView* owner, BRect /*bounds*/, bool complete)
 	}
 
 	fEnabled->SetHighColor(textColor);
-    fEnabled->SetLowColor(backgroundColor);
+	fEnabled->SetLowColor(backgroundColor);
 	fEnabled->MoveTo(checkboxPt.x, checkboxPt.y);
 
 	owner->PopState();
@@ -150,7 +151,6 @@ BackupListItem::Update(BView* owner, const BFont* font)
 	fSecondlineOffset = fFirstlineOffset + lineHeight;
 
 	SetHeight(2 * lineHeight + 4);
-		// either to the text height or icon height, whichever is taller
 }
 
 
