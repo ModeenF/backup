@@ -24,7 +24,7 @@
 const uint32 kMsgDoBackup = 'bkup';
 const uint32 kMsgUpdateSelection = 'upda';
 
-#define LOCATION_COUNT  3
+#define LOCATION_COUNT  4
 struct location_map {
 	uint32 flags;
 	directory_which location;
