@@ -16,11 +16,6 @@
 #include <ListItem.h>
 
 
-#define DO_BACKUP_USER_HOME		(1<<0)
-#define DO_BACKUP_SYS_SETTINGS		(1<<1)
-#define DO_BACKUP_APPS			(1<<2)
-
-
 const uint32 kMsgDoBackup = 'bkup';
 const uint32 kMsgUpdateSelection = 'upda';
 
@@ -44,6 +39,7 @@ public:
 			void				DrawItem(BView* owner,
 									BRect bounds, bool complete);
 			void				Update(BView* owner, const BFont* font);
+			void				Toggle();
 
 			void				SetBytes(off_t bytes) { fSize = bytes; };
 			off_t				Bytes() { return fSize; };

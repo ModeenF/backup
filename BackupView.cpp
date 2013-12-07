@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 
+// Our backup locations
 struct location_map gLocationMap[LOCATION_COUNT] = {
 	{ (1<<0), B_USER_SETTINGS_DIRECTORY, "User Settings", "User configurations and settings", true, true },
 	{ (1<<1), B_SYSTEM_SETTINGS_DIRECTORY, "System Settings", "System configurations and settings", true, true },
@@ -73,7 +74,7 @@ BackupListItem::BackupListItem(uint32 mapItem, const char* name, const char* des
 
 BackupListItem::~BackupListItem()
 {
-
+	delete fEnabled;
 }
 
 
@@ -89,27 +90,26 @@ BackupListItem::DrawItem(BView* owner, BRect /*bounds*/, bool complete)
 
 	BRect bounds = list->ItemFrame(list->IndexOf(this));
 
-	//rgb_color highColor = list->HighColor();
-	rgb_color lowColor = list->LowColor();
-
-	list->SetDrawingMode(B_OP_OVER);
-
-	if (IsSelected() || complete) {
-		list->SetHighColor(lowColor);
-		list->FillRect(bounds);
-	}
-
 	rgb_color textColor = ui_color(B_LIST_ITEM_TEXT_COLOR);
 	rgb_color backgroundColor = ui_color(B_LIST_BACKGROUND_COLOR);
 
+	if (fIndex % 2)
+		backgroundColor = (rgb_color){ 247, 247, 247, 255 };
+
+	// draw background
+	list->SetDrawingMode(B_OP_OVER);
+	list->SetHighColor(backgroundColor);
+	list->FillRect(bounds);
+
+	// set proper colors for "normal" items
 	list->SetHighColor(textColor);
 	list->SetLowColor(backgroundColor);
 
+	// Set up points for things in BListItem
 	BPoint checkboxPt = bounds.LeftTop();
 	BPoint namePt = bounds.LeftTop();
 	BPoint descriptionPt = bounds.LeftTop();
 	BPoint sizePt = bounds.RightTop();
-
 	namePt += BPoint(16 + 8, fFirstlineOffset);
 	sizePt += BPoint(0, fFirstlineOffset);
 	descriptionPt += BPoint(16 + 8, fSecondlineOffset);
@@ -178,6 +178,18 @@ BackupListItem::Value()
 		return fEnabled->Value();
 
 	return B_CONTROL_OFF;
+}
+
+
+void
+BackupListItem::Toggle()
+{
+	// Toggle item if selected
+	if (Value() == B_CONTROL_OFF) {
+		fEnabled->SetValue(B_CONTROL_ON);
+		return;
+	}
+	fEnabled->SetValue(B_CONTROL_OFF);
 }
 
 
