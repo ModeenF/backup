@@ -62,6 +62,7 @@ BackupListItem::BackupListItem(uint32 mapItem, const char* name, const char* des
 	BListItem(0, false),
 	fIndex(mapItem),
 	fName(name),
+	fSize(0),
 	fEnabled(NULL),
 	fDescription(description)
 {
@@ -105,20 +106,31 @@ BackupListItem::DrawItem(BView* owner, BRect /*bounds*/, bool complete)
 	BPoint checkboxPt = bounds.LeftTop();
 	BPoint namePt = bounds.LeftTop();
 	BPoint descriptionPt = bounds.LeftTop();
+	BPoint sizePt = bounds.RightTop();
 
 	namePt += BPoint(16 + 8, fFirstlineOffset);
+	sizePt += BPoint(0, fFirstlineOffset);
 	descriptionPt += BPoint(16 + 8, fSecondlineOffset);
 	checkboxPt += BPoint(4, 2);
-	
+
 	list->SetFont(be_bold_font);
 	list->DrawString(fName.String(), namePt);
+
+	char sizeText[512];
+	size_to_string(fSize, sizeText, 512);
+	BString sizeString(sizeText);
+
+	list->SetFont(be_plain_font);
+	sizePt -= BPoint(
+		be_plain_font->StringWidth(sizeString.String()) + 4.0f, 0);
+
+	list->DrawString(sizeString.String(), sizePt);
 
 	if (textColor.red + textColor.green + textColor.blue > 128 * 3)
 		list->SetHighColor(tint_color(textColor, B_DARKEN_1_TINT));
 	else
 		list->SetHighColor(tint_color(textColor, B_LIGHTEN_1_TINT));
 
-	list->SetFont(be_plain_font);
 	list->SetFontSize(11);
 	list->SetHighColor(ui_color(B_LIST_SELECTED_ITEM_TEXT_COLOR));
 	list->DrawString(fDescription.String(), descriptionPt);
@@ -208,10 +220,19 @@ BackupView::BackupView(BRect frame)
 void
 BackupView::RefreshSizes()
 {
-	char sizeText[512];
+	off_t size;
+
+	for (uint32 i = 0; i < LOCATION_COUNT; i++) {
+		BPath directory;
+		find_directory(gLocationMap[i].location, &directory);
+		size = DirectorySize(&directory, gLocationMap[i].recurse);
+		BackupListItem* item = (BackupListItem*)fBackupList->ItemAt(i);
+		if (!item)
+			continue;
+		item->SetSize(size);
+	}
 
 //	// Refresh Home Directory
-//	BPath userSettingDirectory;
 //	find_directory(B_USER_SETTINGS_DIRECTORY, &userSettingDirectory);
 //	fUserSettingBytes = DirectorySize(&userSettingDirectory, true);
 //	size_to_string(fUserSettingBytes, sizeText, 512);
