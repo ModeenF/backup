@@ -26,7 +26,7 @@ const uint32 kMsgUpdateSelection = 'upda';
 
 #define LOCATION_COUNT  3
 struct location_map {
-	uint32 flag;
+	uint32 flags;
 	directory_which location;
 	const char* name;
 	const char* description;
@@ -45,7 +45,10 @@ public:
 									BRect bounds, bool complete);
 			void				Update(BView* owner, const BFont* font);
 
-			void				SetSize(off_t bytes) { fSize = bytes; };
+			void				SetBytes(off_t bytes) { fSize = bytes; };
+			off_t				Bytes() { return fSize; };
+
+			int32				Value();
 
 private:
 			uint32				fIndex;

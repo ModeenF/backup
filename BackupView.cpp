@@ -4,6 +4,7 @@
  *
  * Authors:
  *	Matthijs Hollemans (size_to_string)
+ *	Alexander von Gluck IV <kallisti5@unixzen.com>
  */
 
 
@@ -139,6 +140,9 @@ BackupListItem::DrawItem(BView* owner, BRect /*bounds*/, bool complete)
 		fEnabled = new BCheckBox(BRect(0, 0, 16, 16), fName.String(),
 			fName.String(), new BMessage(kMsgUpdateSelection));
 		list->AddChild(fEnabled);
+		// First run, set default value
+		fEnabled->SetValue(gLocationMap[fIndex].defaultValue
+			? B_CONTROL_ON : B_CONTROL_OFF);
 	}
 
 	fEnabled->SetHighColor(textColor);
@@ -166,6 +170,16 @@ BackupListItem::Update(BView* owner, const BFont* font)
 }
 
 
+int32
+BackupListItem::Value()
+{
+	if (fEnabled)
+		return fEnabled->Value();
+
+	return B_CONTROL_OFF;
+}
+
+
 // #pragma mark - BackupView
 
 
@@ -181,16 +195,6 @@ BackupView::BackupView(BRect frame)
 	fBackupList = new BListView(BRect(0, 0, 0, 0), "items", B_SINGLE_SELECTION_LIST, B_FOLLOW_ALL_SIDES);
 
 	for (uint32 i = 0; i < LOCATION_COUNT; i++) {
-		//BListItem* item = new BListItem(gLocationMap[i].name, new BMessage(kMsgUpdateSelection));
-		//BListItem* item = new BListItem();
-		//fLocationEnable[i] = new BCheckBox(gLocationMap[i].name,
-		//	gLocationMap[i].name, new BMessage(kMsgUpdateSelection));
-		//fLocationEnable[i]->SetValue(gLocationMap[i].defaultValue
-		//	? B_CONTROL_ON : B_CONTROL_OFF);
-
-		//fLocationSizeText[i] = new BStringView(gLocationMap[i].name, "");
-
-		//list->AddItem(item);
 		BackupListItem* item = new BackupListItem(i, gLocationMap[i].name,
 			gLocationMap[i].description);
 		fBackupList->AddItem(item);
@@ -199,15 +203,25 @@ BackupView::BackupView(BRect frame)
 	// Add total size
 	BStringView* backupSize = new BStringView("total size", "Total size:");
 	fBackupSizeText = new BStringView("backup size", "");
+	fBackupSizeText->SetAlignment(B_ALIGN_RIGHT);
 
 	BButton* button = new BButton(BRect(0, 0, 10, 10), "backup", "Backup!",
 		new BMessage(kMsgDoBackup));
 	button->MakeDefault(true);
 
+	BGroupLayout* totalGroup = BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
+		.AddGrid()
+			.Add(backupSize, 0, 0)
+			.Add(fBackupSizeText, 1, 0)
+		.End()
+		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING,
+			B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+	;
+
 	// Attach all of the LayoutGroups to the view
 	AddChild(BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
 		.Add(new BScrollView("backup item list", fBackupList, B_FOLLOW_LEFT | B_FOLLOW_TOP, 0, false, true))
-		.Add(fBackupSizeText)
+		.Add(totalGroup)
 		.Add(button)
 	);
 
@@ -229,28 +243,8 @@ BackupView::RefreshSizes()
 		BackupListItem* item = (BackupListItem*)fBackupList->ItemAt(i);
 		if (!item)
 			continue;
-		item->SetSize(size);
+		item->SetBytes(size);
 	}
-
-//	// Refresh Home Directory
-//	find_directory(B_USER_SETTINGS_DIRECTORY, &userSettingDirectory);
-//	fUserSettingBytes = DirectorySize(&userSettingDirectory, true);
-//	size_to_string(fUserSettingBytes, sizeText, 512);
-//	fUserSettingSizeText->SetText(sizeText);
-//
-//	// Refresh System Directory
-//	BPath sysSettingDirectory;
-//	find_directory(B_SYSTEM_SETTINGS_DIRECTORY, &sysSettingDirectory);
-//	fSysSettingBytes = DirectorySize(&sysSettingDirectory, true);
-//	size_to_string(fSysSettingBytes, sizeText, 512);
-//	fSysSettingSizeText->SetText(sizeText);
-//
-//	// Refresh System Package Directory
-//	BPath sysPackageDirectory;
-//	find_directory(B_SYSTEM_PACKAGES_DIRECTORY, &sysPackageDirectory);
-//	fSysPackageBytes = DirectorySize(&sysPackageDirectory, false);
-//	size_to_string(fSysPackageBytes, sizeText, 512);
-//	fSysPackageSizeText->SetText(sizeText);
 
 	RefreshTotal();
 }
@@ -262,13 +256,13 @@ BackupView::RefreshTotal()
 	char sizeText[512];
 	off_t totalSize = 0;
 
-//	if ((fUserSettingEnable->Value() && B_CONTROL_ON) != 0)
-//		totalSize += fUserSettingBytes;
-//	if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
-//		totalSize += fSysSettingBytes;
-//	if ((fSysPackageEnable->Value() && B_CONTROL_ON) != 0)
-//		totalSize += fSysPackageBytes;
-
+	for (uint32 i = 0; i < LOCATION_COUNT; i++) {
+		BackupListItem* item = (BackupListItem*)fBackupList->ItemAt(i);
+		if (item->Value() == B_CONTROL_ON) {
+			totalSize += item->Bytes();
+		}
+	}
+	
 	// Update total backup size
 	size_to_string(totalSize, sizeText, 512);
 	fBackupSizeText->SetText(sizeText);
@@ -280,12 +274,12 @@ BackupView::GetTasks()
 {
 	uint32 tasks = 0;
 
-	//if ((fUserSettingEnable->Value() && B_CONTROL_ON) != 0)
-	//	tasks |= DO_BACKUP_USER_HOME;
-	//if ((fSysSettingEnable->Value() && B_CONTROL_ON) != 0)
-	//	tasks |= DO_BACKUP_SYS_SETTINGS;
-	//if ((fSysPackageEnable->Value() && B_CONTROL_ON) != 0)
-	//	tasks |= DO_BACKUP_APPS;
+	for (uint32 i = 0; i < LOCATION_COUNT; i++) {
+		BackupListItem* item = (BackupListItem*)fBackupList->ItemAt(i);
+		if (item->Value() == B_CONTROL_ON) {
+			tasks |= gLocationMap[i].flags;
+		}
+	}
 
 	return tasks;
 }
