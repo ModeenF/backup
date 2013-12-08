@@ -5,20 +5,20 @@
  * Authors:
  *  Alexander von Gluck IV <kallisti5@unixzen.com>
  */
-#ifndef __BACKUP_MANAGER_H
-#define __BACKUP_MANAGER_H
+#ifndef __BACKUP_TASK_H
+#define __BACKUP_TASK_H
 
 
 #include "BackupView.h"
 
 
-class BackupManager {
+class BackupTask {
 public:
-							BackupManager(uint32 taskMask);
-							~BackupManager();
+							BackupTask(uint32 taskMask);
+							~BackupTask();
 private:
 			uint32			fTaskMask;
 };
 
 
-#endif /* __BACKUP_MANAGER_H */
+#endif /* __BACKUP_TASK_H */

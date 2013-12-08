@@ -7,7 +7,7 @@
  */
 
 
-#include "BackupManager.h"
+#include "BackupTask.h"
 
 #include "BackupLocations.h"
 
@@ -15,7 +15,7 @@
 extern struct location_map gLocationMap[LOCATION_COUNT];
 
 
-BackupManager::BackupManager(uint32 taskMask)
+BackupTask::BackupTask(uint32 taskMask)
 	:
 	fTaskMask(taskMask)
 {
@@ -23,7 +23,7 @@ BackupManager::BackupManager(uint32 taskMask)
 }
 
 
-BackupManager::~BackupManager()
+BackupTask::~BackupTask()
 {
 
 }
