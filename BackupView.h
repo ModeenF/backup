@@ -8,7 +8,6 @@
 
 
 #include <CheckBox.h>
-#include <FindDirectory.h>
 #include <Path.h>
 #include <String.h>
 #include <StringView.h>
@@ -18,16 +17,6 @@
 
 const uint32 kMsgDoBackup = 'bkup';
 const uint32 kMsgUpdateSelection = 'upda';
-
-#define LOCATION_COUNT  4
-struct location_map {
-	uint32 flags;
-	directory_which location;
-	const char* name;
-	const char* description;
-	bool defaultValue;
-	bool recurse;
-};
 
 
 class BackupListItem : public BListItem {
