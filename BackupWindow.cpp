@@ -12,6 +12,8 @@
 #include <GroupLayout.h>
 #include <stdio.h>
 
+#include "BackupTask.h"
+
 
 BackupWindow::BackupWindow(BRect frame)
 	:
@@ -65,11 +67,8 @@ BackupWindow::DoBackup(uint32 tasks)
 		alert->Go(NULL);
 		return B_ERROR;
 	}
-	BAlert* alert = new BAlert("nothing to do alert",
-		"Not yet implemented.",
-		"OK", NULL, NULL, B_WIDTH_AS_USUAL,
-		B_OFFSET_SPACING, B_WARNING_ALERT);
-	alert->Go(NULL);
+
+	BackupTask* backupJob = new BackupTask(fBackupView->GetTasks());
 
 	return B_OK;
 }

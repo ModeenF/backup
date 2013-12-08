@@ -9,6 +9,8 @@
 #define __BACKUP_TASK_H
 
 
+#include <FilePanel.h>
+
 #include "BackupView.h"
 
 
@@ -16,7 +18,11 @@ class BackupTask {
 public:
 							BackupTask(uint32 taskMask);
 							~BackupTask();
+
+	virtual	void			MessageReceived(BMessage *msg);
+
 private:
+			void			DestinationDialog();
 			uint32			fTaskMask;
 };
 
